@@ -117,28 +117,44 @@ info registers
 - For full remote debugging setup, ensure `gdb-multiarch` is in your PATH.
 
 ---
-## Debugging QEMU Startup Code
+### 🐛 Debugging QEMU Startup and Guest Entry
 
-When debugging QEMU itself, keep in mind that QEMU’s startup and initialization code runs independently of any guest binaries like `hello.elf`. This means:
+To debug the QEMU startup process and catch when guest execution begins, follow these steps.
 
-- QEMU initializes its virtual hardware, memory mappings, and device emulation *before* your guest program starts executing.
-- Setting breakpoints in QEMU’s startup code lets you step through how the emulator sets up the virtual machine environment.
-- For example, setting a breakpoint at QEMU’s internal `_start` or `main` function allows you to observe early initialization.
-- Once QEMU has completed setup, it loads and runs your guest program (`hello.elf` or others).
+Assuming the `qemu-system-riscv64` debug binary is in your `build` directory:
 
-### Stepping through startup code
+```sh
+# Launch GDB with the QEMU binary
+cd qemu
+gdb ./build/qemu-system-riscv64
+```
 
-To step through QEMU’s startup and initialization:
+Then in `gdb`, set breakpoints and run it with your guest ELF:
 
-1. Build QEMU with debugging symbols enabled (`./configure --enable-debug`).
-2. Launch QEMU inside GDB or `gdb-multiarch`.
-3. Set a breakpoint at `main` or `_start` in the QEMU source.
-4. Run QEMU and step through the initialization code before the guest binary runs.
-5. This allows inspection of interrupt vector initialization, device setup, and other low-level emulator details.
+```gdb
+(gdb) break riscv_harts_cpu_reset
+(gdb) break cpu_exec
+(gdb) run -machine virt -nographic -bios none -kernel <path>hello.elf (or the name of your .elf file)
+```
 
-After startup completes, the guest program begins execution, which you can then debug separately.
+---
 
-This method provides insight into both QEMU internals and guest software behavior.
+### 🧠 What These Breakpoints Do
+
+- `riscv_harts_cpu_reset`:  
+  This breakpoint catches the moment QEMU resets the virtual CPU, which is the first step of guest startup. It's roughly equivalent to a hardware `ResetHandler`.
+
+- `cpu_exec`:  
+  This breakpoint is hit when QEMU begins executing the guest code — where it starts interpreting or translating RISC-V instructions. This marks the start of guest-side activity (e.g., your `hello.elf` `_start`).
+
+---
+
+This setup allows you to step through:
+
+1. QEMU’s CPU reset logic (`riscv_harts_cpu_reset`)
+2. The handoff to guest execution (`cpu_exec`)
+3. Then step directly into the guest binary’s startup (`_start`)
+
 ---
 
 ## Exploring QEMU Source: `virt.c` and Peripheral Emulation

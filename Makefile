@@ -30,7 +30,10 @@ release: ASFLAGS=        # No -g
 release: LDFLAGS= -T link.ld  # No -g
 release: clean all       # Rebuild without debug info
 
-run: all
+run-debug:
+	qemu-system-riscv64 -M virt -nographic -bios none -kernel $(TARGET) -s -S
+
+run:
 	qemu-system-riscv64 -M virt -nographic -bios none -kernel $(TARGET)
 
 clean:

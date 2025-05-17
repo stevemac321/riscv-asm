@@ -111,53 +111,69 @@ info registers
 - For full remote debugging setup, ensure `gdb-multiarch` is in your PATH.
 
 ---
-## Navigating the QEMU Source Repository to virt.c and Understanding Memory-Mapped Devices
+---
 
-After building QEMU from source, you might want to explore how the RISC-V `virt` machine is emulated, especially to understand the memory-mapped devices QEMU provides during emulation.
+## Exploring QEMU Source: `virt.c` and Peripheral Emulation
 
-### How to Find `virt.c`
+To understand how QEMU emulates the RISC-V `virt` machine and its devices, including memory-mapped peripherals, explore the following files and directories in the QEMU source tree:
 
-1. **Locate the QEMU source root** — this is the directory where you cloned the QEMU repository.
+### 🧠 1. `virt.c` – Platform Definition
 
-2. **Navigate to the RISC-V hardware emulation folder:**
+Located at:
 
-3. **Open the `virt.c` file:**
+```
+hw/riscv/virt.c
+```
 
-This file defines the implementation of the `virt` machine, including its devices, memory regions, and interrupt controllers.
+This file defines the RISC-V `virt` board. It sets up:
+- Memory layout
+- CPU configuration
+- UART (serial console)
+- PLIC (interrupt controller)
+- CLINT (core-local interrupts)
+- Flash and RAM devices
+- Memory-mapped I/O regions
 
-### Key Items in `virt.c`
-
-- **Memory-Mapped Devices:**
-
-The `virt` machine exposes several devices mapped at fixed physical addresses. Some important ones include:
-
-- **CLINT (Core Local Interruptor):**
- - Handles software interrupts and timer interrupts.
- - Typically mapped at: `0x02000000`
-
-- **PLIC (Platform-Level Interrupt Controller):**
- - Manages external interrupts.
- - Typically mapped at: `0x0c000000`
-
-- **UART (Serial Console):**
- - Provides console I/O.
- - Usually mapped at: `0x10000000`
-
-- **Address Maps:**
-
-Look for code that calls functions like `memory_region_add_subregion()` or `sysbus_mmio_map()` which map devices to specific memory ranges.
-
-- **Initialization Functions:**
-
-The `virt_init()` function (or similarly named setup functions) registers these devices, sets up interrupt routing, and maps them into the guest physical address space.
-
-### Why This Matters
-
-Understanding these addresses and device names helps when writing assembly or bare-metal programs running inside QEMU’s RISC-V virt machine. For example, if you want to write to the UART to print characters, you need to know its base address and registers, which are documented or implemented in `virt.c`.
+Look for functions like `virt_machine_init()` or `virt_board_init()` to see how devices are registered and where they're mapped.
 
 ---
 
-By exploring `virt.c`, you can correlate the hardware your code interacts with during QEMU emulation and extend or customize the emulated devices if needed.
+### 🔌 2. `hw/gpio/` – GPIO Device Models
+
+Located at:
+
+```
+hw/gpio/
+```
+
+This directory contains emulations of General Purpose Input/Output (GPIO) controllers, which simulate digital I/O pins like LEDs, buttons, and sensors.
+
+Examples include:
+- `sifive_gpio.c`: SiFive RISC-V GPIO controller
+- `pl061.c`: ARM PrimeCell PL061 GPIO
+- `gpio.c`: Base/shared GPIO logic
+
+These are instantiated in `virt.c` (or other platform files) using calls like:
+
+```c
+sysbus_create_simple("sifive,gpio", address, irq);
+```
+
+GPIOs can be memory-mapped and interacted with in RISC-V code, making this a great area for experimenting with device-level debugging or extension.
+
+---
+
+### 📦 3. Other Useful Directories to Explore
+
+- `hw/char/` – UART and serial device models (e.g., `ns16550.c` for serial output)
+- `hw/intc/` – Interrupt controllers like PLIC or CLINT
+- `include/hw/` – Header files that describe device interfaces
+- `docs/system/target-riscv.rst` – Documentation on the `virt` board and its components
+
+---
+
+Understanding these areas gives you a complete view of how RISC-V hardware is emulated in QEMU and how your code interacts with these virtual devices.
+
 
 
 ## License

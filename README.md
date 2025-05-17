@@ -151,7 +151,6 @@ This directory contains emulations of General Purpose Input/Output (GPIO) contro
 Examples include:
 - `sifive_gpio.c`: SiFive RISC-V GPIO controller
 - `pl061.c`: ARM PrimeCell PL061 GPIO
-- `gpio.c`: Base/shared GPIO logic
 
 These are instantiated in `virt.c` (or other platform files) using calls like:
 

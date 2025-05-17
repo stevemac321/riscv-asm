@@ -134,6 +134,7 @@ Then in `gdb`, set breakpoints and run it with your guest ELF:
 ```gdb
 (gdb) break riscv_harts_cpu_reset
 (gdb) break cpu_exec
+(gdb) break riscv_setup_rom_reset_vec
 (gdb) run -machine virt -nographic -bios none -kernel <path>hello.elf (or the name of your .elf file)
 ```
 
@@ -143,6 +144,9 @@ Then in `gdb`, set breakpoints and run it with your guest ELF:
 
 - `riscv_harts_cpu_reset`:  
   This breakpoint catches the moment QEMU resets the virtual CPU, which is the first step of guest startup. It's roughly equivalent to a hardware `ResetHandler`.
+
+  - `riscv_setup_rom_reset_vec`:  
+  This breakpoint is just an example of an interesting breakpoint between `riscv_harts_cpu_reset` and `cpu_exec`.  This function initializes the CPU's reset vector, which is the address where execution begins after a CPU reset — analogous to the "ResetHandler" in physical hardware.
 
 - `cpu_exec`:  
   This breakpoint is hit when QEMU begins executing the guest code — where it starts interpreting or translating RISC-V instructions. This marks the start of guest-side activity (e.g., your `hello.elf` `_start`).

@@ -22,19 +22,25 @@ sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf
 
 ### Step 2: Install QEMU and GDB
 
-# Clone the QEMU repository
+# Install required dependencies (Ubuntu/Debian example)
+sudo apt-get update
+sudo apt-get install -y git build-essential flex bison python3
+
+# Clone QEMU repo if not already done
 git clone https://git.qemu.org/git/qemu.git
 cd qemu
 
-# Configure the build for RISC-V target only (adjust as needed)
-./configure --target-list=riscv64-softmmu,riscv32-softmmu --enable-debug
+# Clean previous build artifacts if any
+make clean
+
+# Configure QEMU with debug enabled
+./configure --enable-debug
 
 # Build QEMU
 make -j$(nproc)
 
-# Install (requires sudo)
-# sudo make install
-
+# Install QEMU system-wide
+sudo make install
 
 ---
 
@@ -111,6 +117,28 @@ info registers
 - For full remote debugging setup, ensure `gdb-multiarch` is in your PATH.
 
 ---
+## Debugging QEMU Startup Code
+
+When debugging QEMU itself, keep in mind that QEMU’s startup and initialization code runs independently of any guest binaries like `hello.elf`. This means:
+
+- QEMU initializes its virtual hardware, memory mappings, and device emulation *before* your guest program starts executing.
+- Setting breakpoints in QEMU’s startup code lets you step through how the emulator sets up the virtual machine environment.
+- For example, setting a breakpoint at QEMU’s internal `_start` or `main` function allows you to observe early initialization.
+- Once QEMU has completed setup, it loads and runs your guest program (`hello.elf` or others).
+
+### Stepping through startup code
+
+To step through QEMU’s startup and initialization:
+
+1. Build QEMU with debugging symbols enabled (`./configure --enable-debug`).
+2. Launch QEMU inside GDB or `gdb-multiarch`.
+3. Set a breakpoint at `main` or `_start` in the QEMU source.
+4. Run QEMU and step through the initialization code before the guest binary runs.
+5. This allows inspection of interrupt vector initialization, device setup, and other low-level emulator details.
+
+After startup completes, the guest program begins execution, which you can then debug separately.
+
+This method provides insight into both QEMU internals and guest software behavior.
 ---
 
 ## Exploring QEMU Source: `virt.c` and Peripheral Emulation

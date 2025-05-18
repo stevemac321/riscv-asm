@@ -8,7 +8,8 @@ This repository demonstrates how to build and debug a minimal RISC-V assembly pr
 - GDB debug script
 
 ---
-
+See my Youtube Video walkthru: https://youtu.be/EshBUwpxtIs
+---
 ## Prerequisites
 
 Ensure you have WSL2 installed and a Linux distro set up (Ubuntu recommended).

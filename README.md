@@ -217,7 +217,8 @@ GPIOs can be memory-mapped and interacted with in RISC-V code, making this a gre
 
 Understanding these areas gives you a complete view of how RISC-V hardware is emulated in QEMU and how your code interacts with these virtual devices.
 
-
+## QEMU Docs: https://www.qemu.org/documentation/
+## RISCV Assembly Instructions: https://github.com/riscv/riscv-isa-manual/releases/download/Ratified-IMAFDQC/riscv-spec-20191213.pdf
 
 ## License
 GPL version 2
